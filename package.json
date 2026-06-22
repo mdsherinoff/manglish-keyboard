@@ -22,7 +22,7 @@
     },
     {
       "name": "history",
-      "title": "Browse Manglish history",
+      "title": "Browse Manglish History",
       "description": "Browse recent transliterations",
       "mode": "view"
     }
