@@ -55,7 +55,3 @@ This extension uses the **Google Input Tools API** for transliteration — the s
 ## Author
 
 Made with ❤️ by [Mohammed Sherin](https://github.com/mdsherinoff)
-
-## License
-
-MIT
