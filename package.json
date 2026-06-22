@@ -22,14 +22,8 @@
     },
     {
       "name": "history",
-      "title": "Transliteration History",
+      "title": "Browse Manglish history",
       "description": "Browse recent transliterations",
-      "mode": "view"
-    },
-    {
-      "name": "itrans-cheatsheet",
-      "title": "ITRANS Cheatsheet",
-      "description": "Reference guide for Malayalam ITRANS notation",
       "mode": "view"
     }
   ],
@@ -55,5 +49,12 @@
   },
   "resolutions": {
     "react": "undefined"
+  },
+  "permissions": {
+    "network": {
+      "domains": [
+        "inputtools.google.com"
+      ]
+    }
   }
 }
