@@ -1,25 +1,44 @@
 import { List, ActionPanel, Action, Clipboard, showHUD } from "@raycast/api";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { transliterate } from "./transliterate";
 import { addToHistory } from "./history-utils";
 
 export default function Command() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function handleSearchChange(text: string) {
     setInput(text);
-    const result = transliterate(text);
-    setOutput(result);
+    setOutput("");
+
+    if (!text.trim()) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Debounce — wait for user to stop typing before calling API
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    debounceTimer.current = setTimeout(async () => {
+      setIsLoading(true);
+      const result = await transliterate(text);
+      setOutput(result);
+      setIsLoading(false);
+    }, 400); // wait 400ms after user stops typing
   }
 
   return (
     <List
-      searchBarPlaceholder="Type ITRANS phonetics (e.g. malayaaLaM)..."
+      searchBarPlaceholder="Type Manglish (e.g. namaskaram, sakhavu, enthu)..."
       onSearchTextChange={handleSearchChange}
+      isLoading={isLoading}
       throttle={false}
     >
-      {output && (
+      {output && !isLoading && (
         <>
           <List.Item
             title={output}
@@ -31,7 +50,7 @@ export default function Command() {
                   title="Copy to Clipboard"
                   onAction={async () => {
                     await Clipboard.copy(output);
-                    await addToHistory(input, output); 
+                    await addToHistory(input, output);
                     await showHUD(`Copied: ${output}`);
                   }}
                 />
@@ -43,7 +62,7 @@ export default function Command() {
                   }}
                 />
                 <Action
-                  title="Copy Input Too"
+                  title="Copy Both"
                   onAction={async () => {
                     await Clipboard.copy(`${input} = ${output}`);
                     await addToHistory(input, output);
@@ -53,12 +72,12 @@ export default function Command() {
               </ActionPanel>
             }
           />
-          <List.Item title={input} subtitle="Your phonetic input" accessories={[{ text: "Romanized" }]} />
+          <List.Item title={input} subtitle="Your Manglish input" accessories={[{ text: "Romanized" }]} />
         </>
       )}
 
-      {!output && (
-        <List.EmptyView title="Malayalam Transliterator" description="Type ITRANS phonetics to get Malayalam script" />
+      {!output && !isLoading && input.trim() === "" && (
+        <List.EmptyView title="Manglish Keyboard" description="Type anything in Manglish to get Malayalam script" />
       )}
     </List>
   );
