@@ -25,13 +25,24 @@ async function fetchWord(word: string): Promise<string | null> {
   return data[1]?.[0]?.[1]?.[0] ?? null;
 }
 
+// Splits a raw token into [word, leadingPunct, trailingPunct]
+function splitPunctuation(token: string): { word: string; leading: string; trailing: string } {
+  const match = token.match(/^([^a-zA-Z]*)([a-zA-Z]*)([^a-zA-Z]*)$/);
+  return {
+    leading: match?.[1] ?? "",
+    word: match?.[2] ?? "",
+    trailing: match?.[3] ?? "",
+  };
+}
+
 export async function transliterate(input: string): Promise<string | null> {
   if (!input.trim()) return "";
 
-  const words = input.trim().split(/\s+/);
+  const tokens = input.trim().split(/\s+/);
+  const parsed = tokens.map(splitPunctuation);
 
-  // Fetch all uncached words in parallel
-  const uncached = words.filter((w) => !wordCache.has(w));
+  // Only fetch non-empty words not already cached
+  const uncached = parsed.map((p) => p.word).filter((w) => w.length > 0 && !wordCache.has(w));
 
   await Promise.all(
     uncached.map(async (word) => {
@@ -42,8 +53,14 @@ export async function transliterate(input: string): Promise<string | null> {
     }),
   );
 
-  const parts = words.map((w) => wordCache.get(w));
-  if (parts.some((p) => p === undefined)) return null;
+  const parts = parsed.map(({ word, leading, trailing }) => {
+    if (!word) return leading + trailing; // punctuation-only token
+    const translated = wordCache.get(word);
+    if (translated === undefined) return null;
+    return leading + translated + trailing;
+  });
+
+  if (parts.some((p) => p === null)) return null;
 
   return parts.join(" ");
 }
