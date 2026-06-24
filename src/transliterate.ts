@@ -3,9 +3,6 @@ type GoogleInputToolsResponse = [string, [string, string[], ...unknown[]][]];
 // Module-level cache: persists for the lifetime of the Raycast process
 const wordCache = new Map<string, string>();
 
-// Google's API caps around 20 words per request, so we batch in chunks
-const BATCH_SIZE = 15;
-
 async function fetchWord(word: string): Promise<string | null> {
   const encoded = encodeURIComponent(word);
   const url = `https://inputtools.google.com/request?text=${encoded}&itc=ml-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8`;
